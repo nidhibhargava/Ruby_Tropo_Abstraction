@@ -1,0 +1,23 @@
+$ bundle install
+
+#start resque and scheduler process 
+$ heroku ps:scale resque=1
+$ heroku ps:scale scheduler=1
+
+#to view the resque display on heroku go to http://phones.herokuapp.com/resque/overview
+# to view resque on localhost go to localhost:9292/resque/overview
+
+#to stop the resque and scheduler process on heroku 
+$ heroku ps:scale resque=0
+$ heroku ps:scale scheduler=0
+
+#samples for testing with Hurl or Curl
+
+# for local testing
+# curl -X POST -d "{\"territory_name\":\"Hungry Buffs\",\"restaurant_phone_number\":\"1112223333\",\"order_number\":\"1232131\"}" http://localhost:8080/getsession.json
+# curl -X POST -d "{\"territory_name\":\"HungryBuffs\",\"restaurant_phone_number\":\"4435270060\",\"order_number\":\"1232131\"}" http://phones.herokuapp.com/getsession.json
+
+# or hurl post against:
+# http://phones.herokuapp.com/getsession.json
+# {"territory_name":"EatBeemore","restaurant_phone_number":"4435270060","order_number":"3582147"}
+# {"territory_name":"EatBmore","restaurant_phone_number":"4435270060","order_number":"3582147", "order_type":"fax", "oder_total":"10"}

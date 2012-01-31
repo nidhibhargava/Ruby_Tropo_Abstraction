@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+#
+# ./ship "git comment"
+#
+#
+
+git add -A && git commit -m "$1" && git push heroku master
