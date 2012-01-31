@@ -1,14 +1,27 @@
 <table border=1>
     <tr>
-      <th> Restaurant Name </th>
-      <th> Order Number </th>
-      <th> Restaurant Number </th>
-      <th> Call Status </th>
-      <th> Call Attempts </th>
+      <th>Order Number</th>
+      <th>Territory</th>
+			<th>Restaurant</th>
+      <th>Phone Number</th>
+			<th>Order Type</th>
+      <th>Order Total</th>
+      <th>Call Attempts</th>
+      <th>Call Status</th>
+      <th>Email Status</th>
     </tr>
-    <% tabs.each do |tab_name| %>
-    <tr>
-      <td><%= tab_name %></td>
-    </tr>
+    <% @model.keys('*').each do |key| %>
+		<% if @model.type(key) == 'hash'%>
+		  <tr>
+				<td><%= /id: (\d+)/.match[1]%></th>
+		    <td><%= @model.hget(key, "territory_name")%>Territory</td>
+				<td><%= @model.hget(key, "restaurant_name")%>Restaurant</td>
+		    <td><%= @model.hget(key, "restaurant_phonenumber")%>Phone Number</td>
+				<td><%= @model.hget(key, "order_type")%>Order Type</td>
+		    <td><%= @model.hget(key, "order_total")%>Order Total</td>
+		    <td><%= @model.hget(key, "attempts")%>Call Attempts</td>
+		    <td><%= @model.hget(key, "call_status")%>Call Status</td>
+		    <td><%= @model.hget(key, "email_status")%>Email Status</td>
+		  </tr>
     <% end %>
 </table>

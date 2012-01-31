@@ -59,3 +59,7 @@ post '/email/:hash' do
   "o:deliverytime" => "Fri, 25 Oct 2011 23:10:10 -0000"
 end
 
+get '/index' do
+	@model = get_redis()
+	erb :index
+end
