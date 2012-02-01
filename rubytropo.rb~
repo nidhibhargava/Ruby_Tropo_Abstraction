@@ -51,8 +51,7 @@ class CallNotification
     r.hset("id:#{json_order_number}", "order_total", jsonParam['order_total'])
     r.hset("id:#{json_order_number}", "status", "none")
     r.hset("id:#{json_order_number}", "attempts", call_attempts)
-    r.hset("id:#{json_order_number}", "email_status", "none") 
-    r.hset("id:#{json_order_number}", "call_time", Time.now)    
+    r.hset("id:#{json_order_number}", "email_status", "none")    
 
     return json_order_number
   end

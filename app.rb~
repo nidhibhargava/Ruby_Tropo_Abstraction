@@ -1,11 +1,6 @@
 require './rubytropo.rb'
 
 
-get '/testing' do
-  puts 'testing my app app'
-end
-
-
 post '/getsession.json' do
   req_body = request.body.read
   json_params = JSON.parse(req_body)

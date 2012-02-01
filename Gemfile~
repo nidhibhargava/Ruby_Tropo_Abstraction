@@ -11,5 +11,4 @@ gem 'active_support'
 gem 'rest-client'
 gem 'mailgun'
 gem 'multimap'
-gem "rack-test"
 
