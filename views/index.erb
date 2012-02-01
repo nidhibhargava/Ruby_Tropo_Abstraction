@@ -11,17 +11,18 @@
       <th>Email Status</th>
     </tr>
     <% @model.keys('*').each do |key| %>
-		<% if @model.type(key) == 'hash'%>
-		  <tr>
-				<td><%= /id: (\d+)/.match[1]%></th>
-		    <td><%= @model.hget(key, "territory_name")%>Territory</td>
-				<td><%= @model.hget(key, "restaurant_name")%>Restaurant</td>
-		    <td><%= @model.hget(key, "restaurant_phonenumber")%>Phone Number</td>
-				<td><%= @model.hget(key, "order_type")%>Order Type</td>
-		    <td><%= @model.hget(key, "order_total")%>Order Total</td>
-		    <td><%= @model.hget(key, "attempts")%>Call Attempts</td>
-		    <td><%= @model.hget(key, "call_status")%>Call Status</td>
-		    <td><%= @model.hget(key, "email_status")%>Email Status</td>
-		  </tr>
-    <% end %>
+			<% if @model.type(key) == 'hash' && /id:[^\d]*(\d+)/.match('key')%>
+				<tr>
+					<td><%= /id:[^\d]*(\d+)/.match('key')[1]%></td>						<!--Order Number-->
+				  <td><%= @model.hget(key, "territory_name")%></td>					<!--Territory-->
+					<td><%= @model.hget(key, "restaurant_name")%></td>				<!--Restaurant-->
+				  <td><%= @model.hget(key, "restaurant_phonenumber")%></td>	<!--Phone Number-->
+					<td><%= @model.hget(key, "order_type")%></td>							<!--Order Type-->
+				  <td><%= @model.hget(key, "order_total")%></td>						<!--Order Total-->
+				  <td><%= @model.hget(key, "attempts")%></td>								<!--Call Attempts-->
+				  <td><%= @model.hget(key, "call_status")%></td>						<!--Call Status-->
+				  <td><%= @model.hget(key, "email_status")%></td>						<!--Email Status-->
+				</tr>
+		  <% end %>
+		<% end %>
 </table>
