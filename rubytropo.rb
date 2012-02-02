@@ -25,10 +25,6 @@ end
 
 class CallNotification
   
-  get '/' do
-  "Hello #{params[:name]}".strip
-  end
-
   #get redis instance
   def self.get_redis()
     if ENV.has_key?("REDISTOGO_URL")
@@ -45,15 +41,15 @@ class CallNotification
     call_attempts = 0
        
     r.hset("id:#{json_order_number}", "territory_name", jsonParam['territory_name'])
+    r.hset("id:#{json_order_number}", "restaurant_name", jsonParam['restaurant_name'])    
     r.hset("id:#{json_order_number}", "restaurant_phonenumber", jsonParam['restaurant_phone_number'])
     r.hset("id:#{json_order_number}", "order_number", jsonParam['order_number'])
     r.hset("id:#{json_order_number}", "order_type", jsonParam['order_type'])
     r.hset("id:#{json_order_number}", "order_total", jsonParam['order_total'])
-    r.hset("id:#{json_order_number}", "status", "none")
+    #r.hset("id:#{json_order_number}", "status", "none")
     r.hset("id:#{json_order_number}", "attempts", call_attempts)
-    r.hset("id:#{json_order_number}", "email_status", "none") 
-    r.hset("id:#{json_order_number}", "call_time", Time.now)    
-
+    #r.hset("id:#{json_order_number}", "email_status", "none") 
+        
     return json_order_number
   end
       
@@ -64,9 +60,14 @@ class CallNotification
     redis_territory_name = r.hget("id:#{hash}", "territory_name")
     redis_restaurant_phone_number = r.hget("id:#{hash}", "restaurant_phonenumber")
     redis_order_number = r.hget("id:#{hash}", "order_number")
-    
+    redis_order_total = r.hget("id:#{hash}", "order_total")
+    r.hincrby("id:#{params[:hash]}", "attempts", 1)
+
+    phone_time = "#{Time.now}"
+    r.hset("id:#{json_order_number}", "call_time", phone_time)
+
     phone = "+1" + redis_restaurant_phone_number
-    msg = "<speak><prosody rate='-70%'>Hello, you have a new takeout order, Please check your email for order details. The order number is, #{redis_order_number}, and the order total is 10 dollars. If you did not receive an email, please call one eight hundred 689-6613. Thank you</prosody></speak>"
+    msg = "<speak><prosody rate='-70%'>Hello, you have a new takeout order, Please check your email for order details. The order number is, #{redis_order_number}, and the order total is #{redis_order_total} dollars. If you did not receive an email, please call one eight hundred 689-6613. Thank you</prosody></speak>"
 
     t.call(:to => phone, :from => "8143257934")
     t.say(:value => msg, :voice => "Susan")
@@ -85,8 +86,3 @@ class CallNotification
     t.response
   end    
 end
-
-
-
-
-
