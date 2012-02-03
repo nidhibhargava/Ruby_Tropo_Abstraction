@@ -23,17 +23,10 @@ post '/error/:hash' do
   redis_attempts = r.hget("id:#{params[:hash]}", "attempts")
 
   if Integer(attempts <= 3)
+    r.hset("id:#{params[:hash]}", "call_status", "Server Error")
     Resque.enqueue_in(3.minutes, Phonecall, redis_order_number)  
   else
-    r.hset("id:#{params[:hash]}", "status", "Server_Error")
-     #email to single user:
-    RestClient.post "https://api:key-3xrun8ueczhw1r4sk697ssggjgimrwo6"\
-    "@api.mailgun.net/v2/app2325333.mailgun.org/messages",
-    :from => "Excited User <nbhargava@localupsolutions.com>",
-    :to => "nbhargava@localupsolutions.com",
-    :subject => "Call Notification Failure",
-    :text => "error will fire if something went wrong at the server level (i.e., the call never went out at all)",
-    "o:deliverytime" => "Fri, 25 Oct 2011 23:10:10 -0000"  
+    CallNotification.send_email(redis_order_number, 'Server Error')
   end
   t.hangup()
 end
@@ -48,17 +41,10 @@ post '/incomplete/:hash' do
   redis_attempts = r.hget("id:#{params[:hash]}", "attempts")
 
   if Integer(attempts <= 3)
+    r.hset("id:#{params[:hash]}", "call_status", "Timeout Error")
     Resque.enqueue_in(3.minutes, Phonecall, redis_order_number)  
   else
-    r.hset("id:#{params[:hash]}", "status", "Incomplete")
-     #email to single user:
-    RestClient.post "https://api:key-3xrun8ueczhw1r4sk697ssggjgimrwo6"\
-    "@api.mailgun.net/v2/app2325333.mailgun.org/messages",
-    :from => "Excited User <nbhargava@localupsolutions.com>",
-    :to => "nbhargava@localupsolutions.com",
-    :subject => "Call Notification Failure",
-    :text => "incomplete fires when the call was unsuccessful - such as a timeout or call failure (someone rejecting the call will usually trigger this event)",
-    "o:deliverytime" => "Fri, 25 Oct 2011 23:10:10 -0000"  
+    CallNotification.send_email(redis_order_number, 'timeout or rejecting the call')
   end
   
   t.hangup()
@@ -76,15 +62,8 @@ post '/hangup/:hash' do
   if Integer(attempts <= 3)
     Resque.enqueue_in(3.minutes, Phonecall, redis_order_number)  
   else
-    r.hset("id:#{params[:hash]}", "status", "Disconnected")
-     #email to single user:
-    RestClient.post "https://api:key-3xrun8ueczhw1r4sk697ssggjgimrwo6"\
-    "@api.mailgun.net/v2/app2325333.mailgun.org/messages",
-    :from => "Excited User <nbhargava@localupsolutions.com>",
-    :to => "nbhargava@localupsolutions.com",
-    :subject => "Call Notification Failure",
-    :text => "hangup fires if the call was answered and then disconnected (reaching voicemail will usually trigger hangup)",
-    "o:deliverytime" => "Fri, 25 Oct 2011 23:10:10 -0000"  
+    r.hset("id:#{params[:hash]}", "call_status", "Call Disconnected"
+    CallNotification.send_email(redis_order_number, 'call was answered and then disconnected reaching voicemail')
   end
   t.hangup()
 end

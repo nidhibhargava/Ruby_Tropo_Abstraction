@@ -1,0 +1,14 @@
+require './rubytropo.rb'
+
+describe CallNotification do
+
+  it 'should return the redis instance'do
+    r = CallNotification.get_redis
+    assert not r.nil?
+    #last_response.should be_ok
+    #assert last_response.body.include?('Redis')
+  end
+end
+
+
+

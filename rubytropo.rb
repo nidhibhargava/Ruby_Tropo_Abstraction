@@ -7,9 +7,9 @@ require 'active_support/time'
 module Phonecall
    @queue = :Phonecall
    def self.perform(order_number)
-      r = get_redis()
       
-       # Pulling the items out of the hash into a variable for readability 
+      r = CallNotification::get_redis()
+      # Pulling the items out of the hash into a variable for readability 
       redis_territory_name = r.hget("id:#{order_number}", "territory_name")
       redis_restaurant_phone_number = r.hget("id:#{order_number}", "restaurant_phonenumber")
       redis_order_number = r.hget("id:#{order_number}", "order_number")
@@ -46,43 +46,65 @@ class CallNotification
     r.hset("id:#{json_order_number}", "order_number", jsonParam['order_number'])
     r.hset("id:#{json_order_number}", "order_type", jsonParam['order_type'])
     r.hset("id:#{json_order_number}", "order_total", jsonParam['order_total'])
-    #r.hset("id:#{json_order_number}", "status", "none")
+    #r.hset("id:#{json_order_number}", "call_status", "none")
     r.hset("id:#{json_order_number}", "attempts", call_attempts)
     #r.hset("id:#{json_order_number}", "email_status", "none") 
         
     return json_order_number
   end
       
-  def self.call_tropo(hash)
+  def self.call_tropo(orderID)
     t = Tropo::Generator.new
     # Pulling data out of redis based on our hash
     r = get_redis() 
-    redis_territory_name = r.hget("id:#{hash}", "territory_name")
-    redis_restaurant_phone_number = r.hget("id:#{hash}", "restaurant_phonenumber")
-    redis_order_number = r.hget("id:#{hash}", "order_number")
-    redis_order_total = r.hget("id:#{hash}", "order_total")
-    r.hincrby("id:#{params[:hash]}", "attempts", 1)
-
+    redis_territory_name = r.hget("id:#{orderID}", "territory_name")
+    redis_restaurant_phone_number = r.hget("id:#{orderID}", "restaurant_phonenumber")
+    redis_order_number = r.hget("id:#{orderID}", "order_number")
+    redis_order_total = r.hget("id:#{orderID}", "order_total")
+    r.hincrby("id:#{orderID}", "attempts", 1)
+   
     phone_time = "#{Time.now}"
-    r.hset("id:#{json_order_number}", "call_time", phone_time)
+    r.hset("id:#{orderID}", "call_time", phone_time)
 
-    phone = "+1" + redis_restaurant_phone_number
+    phone = "+1#{redis_restaurant_phone_number}"
     msg = "<speak><prosody rate='-70%'>Hello, you have a new takeout order, Please check your email for order details. The order number is, #{redis_order_number}, and the order total is #{redis_order_total} dollars. If you did not receive an email, please call one eight hundred 689-6613. Thank you</prosody></speak>"
 
     t.call(:to => phone, :from => "8143257934")
     t.say(:value => msg, :voice => "Susan")
-
+    r.hset("id:#{orderID}", "call_status", "Success")
     #error will fire if something went wrong at the server level (i.e., the call never went out at all)
-    t.on(:event => 'error', :next => '/error/' + redis_order_number)
+    t.on(:event => 'error', :next => "/error/#{redis_order_number}")
     
     #incomplete fires when the call was unsuccessful - such as a timeout or call failure (someone rejecting the call will usually trigger this event)  
-    t.on(:event => 'incomplete', :next => '/incomplete/' + redis_order_number)
+    t.on(:event => 'incomplete', :next => "/incomplete/#{redis_order_number}")
 
     #hangup fires if the call was answered and then disconnected (reaching voicemail will usually trigger hangup)
-    t.on(:event => 'hangup', :next => '/hangup/' + redis_order_number)
+    t.on(:event => 'hangup', :next => "/hangup/#{redis_order_number}")
     
     #update the orderid state after making call   
     
     t.response
   end    
+
+  def self.send_email(orderID, errorMsg)
+
+    r = get_redis() 
+    r.hset("id:#orderID", "status", errorMsg)
+
+    order_number = r.hget("id:#{orderID}", "order_number")
+    territory_name = r.hget("id:#{orderID}", "territory_name")
+    restaurant_name = r.hget("id:#{orderID}", "restaurant_name")
+    restaurant_phone_number = r.hget("id:#{orderID}","restaurant_phonenumber")
+
+    #email to single user:
+    
+    RestClient.post "https://api:key-3xrun8ueczhw1r4sk697ssggjgimrwo6"\
+    "@api.mailgun.net/v2/app2325333.mailgun.org/messages",
+    :from => "Excited User <nbhargava@localupsolutions.com>",
+    :to => "CallFailure@localupsolutionscom.zendesk.com",
+    :subject => "call failure - order#{order_number}",
+    :html => "<html>The following automated call was not answered: <br/><br/> <b>Order ID</b>: #{order_number} <br/> <b>Territory Name</b>: #{territory_name} <br/> <b>Restaurant Name</b>: #{restaurant_name} <br/> <b>Restaurant Phone Number</b>: #{restaurant_phone_number} <br/><br/> <b>Reason for call Failure:</b> #{errorMsg}</html>"
+
+    r.hset("id:#{orderID}", "email_status", "Sent") 
+  end
 end

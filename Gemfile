@@ -3,7 +3,6 @@ gem 'sinatra'
 gem 'tropo-webapi-ruby'
 gem 'redis'
 gem 'json'
-gem 'os'
 gem 'resque'
 gem 'resque-scheduler'
 gem 'rack'
@@ -13,3 +12,9 @@ gem 'mailgun'
 gem 'multimap'
 gem "rack-test"
 
+group :development do
+
+gem 'shotgun'
+gem 'rspec'
+
+end
