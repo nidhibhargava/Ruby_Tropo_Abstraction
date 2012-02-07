@@ -71,7 +71,7 @@ class CallNotification
 
     t.call(:to => phone, :from => "8143257934")
     t.say(:value => msg, :voice => "Susan")
-    r.hset("id:#{orderID}", "call_status", "Success")
+
     #error will fire if something went wrong at the server level (i.e., the call never went out at all)
     t.on(:event => 'error', :next => "/error/#{redis_order_number}")
     

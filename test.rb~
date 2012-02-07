@@ -1,0 +1,26 @@
+require './rubytropo.rb'
+require './app.rb'
+require 'test/unit'
+require 'rack/test'
+
+ENV['RACK_ENV'] = 'test'
+
+class AppTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+
+  def app
+    Sinatra::Application
+  end
+
+  def test_getsession
+    post '/getsession.json', :data => '{"territory_name":"EatBmore","restaurant_phone_number":"4435270060","order_number":"3582147", "order_type":"fax", "oder_total":"10"}'
+    assert last_response.ok?
+    aassert last_response.body.include?('EatBmore')
+  end
+
+  def test_it_says_hello_to_a_person
+    get '/', :name => 'Nidhi'
+    assert last_response.body.include?('Nidhi')
+  end
+end
+

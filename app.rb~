@@ -60,9 +60,9 @@ post '/hangup/:hash' do
   redis_attempts = r.hget("id:#{params[:hash]}", "attempts")
 
   if Integer(attempts <= 3)
-    r.hset("id:#{params[:hash]}", "call_status", "Call Disconnected"
     Resque.enqueue_in(3.minutes, Phonecall, redis_order_number)  
-  else    
+  else
+    r.hset("id:#{params[:hash]}", "call_status", "Call Disconnected"
     CallNotification.send_email(redis_order_number, 'call was answered and then disconnected reaching voicemail')
   end
   t.hangup()
